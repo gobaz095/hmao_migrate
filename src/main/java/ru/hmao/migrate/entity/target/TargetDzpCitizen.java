@@ -53,7 +53,7 @@ public class TargetDzpCitizen {
     private String streetreal;
     private String housereal;
     private String roomreal;
-    private Long idregionreal;
+    private Integer idregionreal;
     private Long idareareal;
     private Long idcityreal;
     private Long idlocalityreal;

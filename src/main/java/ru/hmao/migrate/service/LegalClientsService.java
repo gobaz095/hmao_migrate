@@ -55,33 +55,34 @@ public class LegalClientsService {
     private final TagetDzpCitizenRepository tagetDzpCitizenRepository;
     private final TagetDzpCitizenLogRepository tagetDzpCitizenLogRepository;
 
-    private static final String SELECT = "SELECT " +
-            "    id, " +
-            "    clienttype, " +
-            "    name, " +
-            "    sections_id, " +
-            "    address_id, " +
-            "    inn, " +
-            "    okonh, " +
-            "    okpo, " +
-            "    okved, " +
-            "    bankname, " +
-            "    kpp, " +
-            "    account, " +
-            "    corraccount, " +
-            "    bik, " +
-            "    regdoc_id, " +
-            "    unpreferred, " +
-            "    info, " +
-            "    ownership_name, " +
-            "    client_types_id, " +
-            "    e_mail, " +
-            "    mobil_phone, " +
-            "    exists_since, " +
-            "    exists_end " +
-            "    okved2 " +
-            "FROM clients " +
-            "where client_types_id = 2";
+    private static final String SELECT = "SELECT \n" +
+            "    t1.id,\n" +
+            "    t2.name org_name,\n" +
+            "    t3.name org_form,\n" +
+            "    t2.ogrn,\n" +
+            "    t1.exists_since,\n" +
+            "    t2.attorney,\n" +
+            //"    t4.pasportgiven,\n" +
+            "    t5.postcode,\n" +
+            "    t6.name as region,\n" +
+            "    t7.name as town_name,\n" +
+            "    t7.townname_code_id,\n" +
+            "    t8.name as street_name,\n" +
+            "    t5.house || '' || t5.HOUSE_CHAR as house_char,\n" +
+            "    t5.appartment,\n" +
+            "    t6.code region_code,\n" +
+            "    t2.dirphone,\n" +
+            "    t1.inn,\n" +
+            "    t1.mobil_phone\n" +
+            "    FROM clients t1\n" +
+            "    left join ORGANISATIONS t2 on t1.id = t2.clients_id\n" +
+            "    left join ORGFORMS t3 on t2.orgform = t3.id\n" +
+            //"    left join PRIVATES t4 on t1.id = t4.clients_id\n" +
+            "    left join address t5 on t1.address_id = t5.id\n" +
+            "    left join regions t6 on t5.regions_id = t6.id\n" +
+            "    left join townnames t7 on t5.townnames_id = t7.id\n" +
+            "    left join streets t8 on t5.streets_id = t8.id\n" +
+            "    where t1.client_types_id = 2";
 
     @SneakyThrows
     @Async
@@ -114,7 +115,11 @@ public class LegalClientsService {
                         if (!tagetDzpCitizenLogRepository.findById(id).isPresent()) {
                             tagetDzpCitizenRepository.insert(targetDzpCitizen);
                             //Логирование записи
-                            tagetDzpCitizenLogRepository.insert(TargetDzpCitizenLog.builder().sourceId(id).idcitizen(targetDzpCitizen.getIdcitizen()).build());
+                            tagetDzpCitizenLogRepository.insert(TargetDzpCitizenLog.builder()
+                                    .sourceId(id)
+                                    .clientTypesId(2)
+                                    .idcitizen(targetDzpCitizen.getIdcitizen())
+                                    .build());
                             count++;
                         }
                     }
@@ -134,34 +139,38 @@ public class LegalClientsService {
     }
 
     public TargetDzpCitizen mapCitizen(ResultSet rs) throws SQLException {
-        List<String> fio = Arrays.asList(rs.getString("name").split(" "));
         Date existsSince = rs.getDate("exists_since");
+        String attorney = rs.getString("attorney");
+        Integer townCodeId = rs.getInt("townname_code_id");
+        String townName = rs.getString("town_name");
+        String ogrn = rs.getString("ogrn");
+        String org_name = rs.getString("org_name");
         return TargetDzpCitizen.builder()
                 .idcitizen(tagetDzpCitizenRepository.getNextSeriesId())
-                .fnamecitizen(fio.size() > 0 ? fio.get(0) : "Пусто")
-                .mnamecitizen(fio.size() > 1 ? fio.get(1) : "Пусто")
-                .snamecitizen(fio.size() > 2 ? fio.get(2) : "Пусто")
-                .dbirthcitizen(existsSince == null ? LocalDate.now() : existsSince.toLocalDate())
+                .fnamecitizen(org_name.substring(0, Math.min(org_name.length(), 100)))
+                .mnamecitizen(rs.getString("org_form"))
+                .snamecitizen(ogrn == null ? "" : ogrn)
+                .dbirthcitizen(existsSince == null ? LocalDate.of(1900, 1, 1): existsSince.toLocalDate())
                 .idsex(3)
-                .iddoctype(25) //785 не найдено
+                .iddoctype(22)
                 .seriesdocument("TESTMIG")
-                .numberdocument("-")
+                .numberdocument(attorney == null ? "-" : attorney)
                 .descdocument(null)
-                .postindexreal(null)
-                .regionreal(null)
-                .cityreal(null)
-                .localityreal(null)
-                .streetreal(null)
-                .housereal(null)
-                .roomreal(null)
-                .idregionreal(null)
-                .phone(null)
+                .postindexreal(rs.getInt("postcode"))
+                .regionreal(rs.getString("region"))
+                .cityreal(townCodeId.equals(5) ? townName : null)
+                .localityreal(!townCodeId.equals(5) ? townName : null)
+                .streetreal(rs.getString("street_name"))
+                .housereal(rs.getString("house_char"))
+                .roomreal(rs.getString("appartment"))
+                .idregionreal(rs.getInt("region_code"))
+                .phone(rs.getString("dirphone"))
                 .uins(null)
                 .uupd(null)
-                .inn(null)
+                .inn(rs.getString("inn"))
                 .address(null)
                 .validSnils(0)
-                .phonework(null)
+                .phonework(rs.getString("mobil_phone"))
                 .dins(LocalDateTime.now())
                 .uins("DZP")
                 .build();

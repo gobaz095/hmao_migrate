@@ -17,5 +17,6 @@ import org.springframework.data.relational.core.mapping.Table;
 public class TargetDzpCitizenLog {
     @Id
     private Long sourceId;
+    private Integer clientTypesId;
     private Long idcitizen;
 }
