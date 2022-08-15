@@ -10,6 +10,9 @@
     <name>hmao_migrate</name>
     <description>Сервис миграции данных для ХМАО oracle в postgres</description>
 
+
+    <packaging>jar</packaging>
+
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>

@@ -5,7 +5,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -39,6 +38,61 @@ public class LegalClientsService {
 
     private AtomicBoolean isRun = new AtomicBoolean(false);
 
+    private static final String SELECT = "SELECT " +
+            "    id, " +
+            "    clienttype, " +
+            "    name, " +
+            "    sections_id, " +
+            "    address_id, " +
+            "    inn, " +
+            "    okonh, " +
+            "    okpo, " +
+            "    okved, " +
+            "    bankname, " +
+            "    kpp, " +
+            "    account, " +
+            "    corraccount, " +
+            "    bik, " +
+            "    regdoc_id, " +
+            "    unpreferred, " +
+            "    info, " +
+            "    ownership_name, " +
+            "    client_types_id, " +
+            "    e_mail, " +
+            "    mobil_phone, " +
+            "    exists_since, " +
+            "    exists_end " +
+            "    okved2 " +
+            "FROM clients " +
+            "where client_types_id = 2";
+    private static final String IINSERT = "INSERT INTO hmao_test.dzp_citizen(" +
+            "idcitizen, " +
+            "fnamecitizen, " +
+            "mnamecitizen, " +
+            "snamecitizen, " +
+            "dbirthcitizen, " +
+            "idsex, " +
+            "iddoctype, " +
+            "seriesdocument, " +
+            "numberdocument, " +
+            "descdocument, " +
+            "postindexreal, " +
+            "regionreal, " +
+            "cityreal, " +
+            "localityreal, " +
+            "streetreal, " +
+            "housereal, " +
+            "roomreal, " +
+            "idregionreal, " +
+            "phone, " +
+            "uins, " +
+            "uupd, " +
+            "inn, " +
+            "address, " +
+            "valid_snils, " +
+            "phonework) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+
     @SneakyThrows
     @Async
     public void migrateLegalClients() {
@@ -49,60 +103,7 @@ public class LegalClientsService {
             try {
                 Instant start = Instant.now();
                 log.info("start migrateLegalClients");
-                String select = "SELECT " +
-                        "    id, " +
-                        "    clienttype, " +
-                        "    name, " +
-                        "    sections_id, " +
-                        "    address_id, " +
-                        "    inn, " +
-                        "    okonh, " +
-                        "    okpo, " +
-                        "    okved, " +
-                        "    bankname, " +
-                        "    kpp, " +
-                        "    account, " +
-                        "    corraccount, " +
-                        "    bik, " +
-                        "    regdoc_id, " +
-                        "    unpreferred, " +
-                        "    info, " +
-                        "    ownership_name, " +
-                        "    client_types_id, " +
-                        "    e_mail, " +
-                        "    mobil_phone, " +
-                        "    exists_since, " +
-                        "    exists_end " +
-                        "    okved2 " +
-                        "FROM clients " +
-                        "where client_types_id = 2";
-                String insert = "INSERT INTO hmao_test.dzp_citizen(" +
-                        "idcitizen, " +
-                        "fnamecitizen, " +
-                        "mnamecitizen, " +
-                        "snamecitizen, " +
-                        "dbirthcitizen, " +
-                        "idsex, " +
-                        "iddoctype, " +
-                        "seriesdocument, " +
-                        "numberdocument, " +
-                        "descdocument, " +
-                        "postindexreal, " +
-                        "regionreal, " +
-                        "cityreal, " +
-                        "localityreal, " +
-                        "streetreal, " +
-                        "housereal, " +
-                        "roomreal, " +
-                        "idregionreal, " +
-                        "phone, " +
-                        "uins, " +
-                        "uupd, " +
-                        "inn, " +
-                        "address, " +
-                        "valid_snils, " +
-                        "phonework) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+
                 String resultLogSql = "insert into MIGRATE_CURS_CONTRACTOR (source_id, target_id) values (?, ?)";
                 try (Connection sourceConn = sourceDataSource.getConnection();
                      Statement sourceSt = sourceConn.createStatement();
@@ -112,10 +113,10 @@ public class LegalClientsService {
                     sourceSt.setFetchSize(batchSize);
                     targetConn.setAutoCommit(false);
                     // Получаем данные
-                    ResultSet rs = sourceSt.executeQuery(select);
+                    ResultSet rs = sourceSt.executeQuery(SELECT);
                     int count = 0;
 
-                    PreparedStatement st = targetConn.prepareStatement(insert);
+                    PreparedStatement st = targetConn.prepareStatement(IINSERT);
                     PreparedStatement stResultLog = targetConn.prepareStatement(resultLogSql);
                     while (rs.next() && isRun.get()) {
                         List<String> fio = Arrays.asList(rs.getString("name").split(" "));
@@ -125,8 +126,8 @@ public class LegalClientsService {
                         st.setString(2, (fio.size() > 0 ? fio.get(0) : "Пусто"));
                         st.setString(3, (fio.size() > 1 ? fio.get(1) : "Пусто"));
                         st.setString(4, (fio.size() > 2 ? fio.get(2) : "Пусто"));
-                        Date exists_since = rs.getDate("exists_since");
-                        st.setDate(5, exists_since == null ? Date.valueOf(LocalDate.now()) : null);
+                        Date existsSince = rs.getDate("exists_since");
+                        st.setDate(5, existsSince == null ? Date.valueOf(LocalDate.now()) : null);
                         st.setInt(6, (3));
                         st.setInt(7, (785));
                         st.setString(8, ("-"));
