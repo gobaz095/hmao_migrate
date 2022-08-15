@@ -77,7 +77,7 @@ public class TargetRepositoryConfig extends AbstractJdbcConfiguration {
     @Bean
     public DataSourceInitializer dataSourceInitializer(@Qualifier("targetDataSource") final DataSource dataSource) {
         ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();
-        resourceDatabasePopulator.addScript(new ClassPathResource("/create_log_tables.sql"));
+        resourceDatabasePopulator.addScript(new ClassPathResource("/sql/create_log_tables.sql"));
         DataSourceInitializer dataSourceInitializer = new DataSourceInitializer();
         dataSourceInitializer.setDataSource(dataSource);
         dataSourceInitializer.setDatabasePopulator(resourceDatabasePopulator);

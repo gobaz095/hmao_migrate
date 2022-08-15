@@ -8,4 +8,8 @@ public interface TagetDzpCitizenRepository extends CrudRepository<TargetDzpCitiz
 
     @Query(value = "SELECT nextval('seq_idcitizen')")
     Long getNextSeriesId();
+
+    TargetDzpCitizen getFirstBySnils(String snils);
+
+    TargetDzpCitizen getFirstByInn(String inn);
 }

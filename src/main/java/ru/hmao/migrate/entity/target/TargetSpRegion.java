@@ -12,12 +12,14 @@ import org.springframework.data.relational.core.mapping.Table;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table("migrate_dzp_citizen")
+@Table("dzp_sp_region")
 @Builder
-public class TargetDzpCitizenLog {
+public class TargetSpRegion {
     @Id
-    private Long sourceId;
-    private Integer clientTypesId;
-    private Long idcitizen;
-    private Boolean newItem;
+    private Integer idregion;
+    private Integer idsocrbase;
+    private String nameregion;
+    private Boolean prizn;
+    private String coderegion;
+    private String ocato;
 }

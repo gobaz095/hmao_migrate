@@ -86,4 +86,5 @@ public class TargetDzpCitizen {
     private LocalDate updatepassportstatus;
     private String passportstatus;
 
+
 }

@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import ru.hmao.migrate.enums.ClientType;
 import ru.hmao.migrate.util.SwaggerConstants;
 
 
@@ -18,5 +19,5 @@ public interface MigrateController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = SwaggerConstants.HTTP_OK, description = SwaggerConstants.LOAD_DATA_DB_SUCCESSFULLY),
             @ApiResponse(responseCode = SwaggerConstants.HTTP_ERROR, description = SwaggerConstants.LOAD_DATA_DB_FAILED)})
-    ResponseEntity<String> migrateLegalClients() throws Exception;
+    ResponseEntity<String> migrateLegalClients(ClientType clientType) throws Exception;
 }

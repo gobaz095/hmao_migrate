@@ -1,4 +1,4 @@
-server.port: 8089
+server.port: 8090
 
 spring:
   liquibase:
@@ -10,11 +10,12 @@ datasource:
   source:
     driver-class-name: oracle.jdbc.OracleDriver
     jdbc-url: jdbc:oracle:thin:@92.63.103.105:49163/xe
+#    jdbc-url: jdbc:oracle:thin:@92.63.103.105:49164/xe
     username: SM
     password: 7FHYk7xLE
 #  target:
 #    driver-class-name: org.postgresql.Driver
-#    jdbc-url: jdbc:postgresql://localhost:5432/hmao_test?currentSchema=hmao_test
+#    jdbc-url: jdbc:postgresql://localhost:5432/hmao_test?currentSchema=dzp1
 #    username: postgres
 #    password: postgres
 #    maximum-pool-size: 2
@@ -25,7 +26,7 @@ datasource:
     jdbc-url: jdbc:postgresql://92.63.103.105:5432/gpjs_prod?currentSchema=dzp
     username: postgres
     password: tK9CQW
-    maximum-pool-size: 2
+    maximum-pool-size: 1
 
 converter:
   batch:
