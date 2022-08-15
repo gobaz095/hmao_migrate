@@ -1,0 +1,153 @@
+{
+  "properties": [
+    {
+      "name": "datasource.target.contractor.driver-class-name",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.contractor.driver-class-name."
+    },
+    {
+      "name": "datasource.target.contractor.jdbc-url",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.contractor.jdbc-url."
+    },
+    {
+      "name": "datasource.target.contractor.username",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.contractor.username."
+    },
+    {
+      "name": "datasource.target.contractor.password",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.contractor.password."
+    },
+    {
+      "name": "datasource.target.contractor.maximum-pool-size",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.contractor.maximum-pool-size."
+    },
+    {
+      "name": "datasource.target.incident.driver-class-name",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.incident.driver-class-name."
+    },
+    {
+      "name": "datasource.target.incident.jdbc-url",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.incident.jdbc-url."
+    },
+    {
+      "name": "datasource.target.incident.username",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.incident.username."
+    },
+    {
+      "name": "datasource.target.incident.password",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.incident.password."
+    },
+    {
+      "name": "datasource.target.incident.maximum-pool-size",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.incident.maximum-pool-size."
+    },
+    {
+      "name": "datasource.target.deal.driver-class-name",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.deal.driver-class-name."
+    },
+    {
+      "name": "datasource.target.deal.jdbc-url",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.deal.jdbc-url."
+    },
+    {
+      "name": "datasource.target.deal.username",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.deal.username."
+    },
+    {
+      "name": "datasource.target.deal.password",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.deal.password."
+    },
+    {
+      "name": "datasource.target.deal.maximum-pool-size",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.deal.maximum-pool-size."
+    },
+    {
+      "name": "datasource.target.dfbs.driver-class-name",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.dfbs.driver-class-name."
+    },
+    {
+      "name": "datasource.target.dfbs.jdbc-url",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.dfbs.jdbc-url."
+    },
+    {
+      "name": "datasource.target.dfbs.username",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.dfbs.username."
+    },
+    {
+      "name": "datasource.target.dfbs.password",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.dfbs.password."
+    },
+    {
+      "name": "datasource.target.dfbs.maximum-pool-size",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.dfbs.maximum-pool-size."
+    },
+    {
+      "name": "datasource.target.informatica.driver-class-name",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.informatica.driver-class-name."
+    },
+    {
+      "name": "datasource.target.informatica.jdbc-url",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.informatica.jdbc-url."
+    },
+    {
+      "name": "datasource.target.informatica.username",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.informatica.username."
+    },
+    {
+      "name": "datasource.target.informatica.password",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.informatica.password."
+    },
+    {
+      "name": "datasource.target.informatica.maximum-pool-size",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.informatica.maximum-pool-size."
+    },
+    {
+      "name": "datasource.target.decision.driver-class-name",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.informatica.driver-class-name."
+    },
+    {
+      "name": "datasource.target.decision.jdbc-url",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.informatica.jdbc-url."
+    },
+    {
+      "name": "datasource.target.decision.username",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.informatica.username."
+    },
+    {
+      "name": "datasource.target.decision.password",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.informatica.password."
+    },
+    {
+      "name": "datasource.target.decision.maximum-pool-size",
+      "type": "java.lang.String",
+      "description": "Description for datasource.target.informatica.maximum-pool-size."
+    }
+  ] }

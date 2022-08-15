@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" monitorInterval="10">
+    <Properties>
+        <Property name="risCode">${spring:ms.properties.infoSystemId}</Property>
+        <Property name="projectCode">${spring:ms.properties.infoSystemCode}</Property>
+        <Property name="appName">${spring:spring.application.name}</Property>
+        <Property name="appType">JAVA</Property>
+        <!-- При необходимости эти поля могут быть изменены -->
+        <Property name="encProvider"/>
+    </Properties>
+    <Appenders>
+        <Socket name="Socket" host="127.0.0.1" port="5170"
+                reconnectionDelayMillis="5000">
+            <!--
+              См. https://github.com/vy/log4j2-logstash-layout
+              locationInfoEnabled включает заполнение полей callerClass, callerLine и callerMethod и может
+              негативно влиять на производительность
+            -->
+            <!--      maxByteCount - Максимальное количество байт в логе-->
+            <!--      Координировать изменения значения, вместе с параметром задающим максимальный размер лога в fluent-bit-->
+            <!--      Buffer_Size. Параметр плагина tcp в файле fluent-bit.conf-->
+            <LogstashLayout prettyPrintEnabled="false"
+                            stackTraceEnabled="true"
+                            locationInfoEnabled="true"
+                            emptyPropertyExclusionEnabled="true"
+                            mdcKeyPattern="(?!agrType|traceId|spanId|parentSpanId|userId|logicTime|extEventId).+"
+                            timeZoneId="UTC"
+                            dateTimeFormatPattern="yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+                            maxByteCount="1000000">
+                <EventTemplate>
+                    {
+                    "risCode":"${risCode}",
+                    "projectCode":"${projectCode}",
+                    "appName": "${appName}",
+                    "localTime": "${json:timestamp}",
+                    "level": "${json:level}",
+                    "text": "${json:message}",
+
+                    "eventId": "$${vtbEventId:uuid}",
+                    "extEventId": "${json:mdc:extEventId}",
+                    "parentId": null,
+
+                    "encProvider": "${encProvider}",
+
+                    "agrType": "$${jaegerSpan:agrType}",
+                    "traceId": "${jaegerSpan:traceId}",
+                    "spanId": "$${jaegerSpan:spanId}",
+                    "parentSpanId": "${json:mdc:parentSpanId}",
+                    "userId": "${json:mdc:userId}",
+                    "logicTime": "${json:mdc:logicTime}",
+
+                    "appType": "${appType}",
+                    "stack": "${json:exception:stackTrace:text}",
+                    "levelInt": "${json:level:severity:code}",
+                    "loggerName": "${json:logger:name}",
+                    "threadName": "${json:thread:name}",
+                    "callerClass": "${json:source:className}",
+                    "callerMethod": "${json:source:methodName}",
+                    "callerLine": "${json:source:lineNumber}",
+                    "mdc": "${json:mdc}",
+                    "esIndexLevelSuffix": "$${esIndexLevelSuffix:level}"
+                    }
+                </EventTemplate>
+            </LogstashLayout>
+        </Socket>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="info">
+            <AppenderRef ref="Socket"/>
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>

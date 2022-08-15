@@ -1,0 +1,53 @@
+server.port: 8089
+
+spring:
+  liquibase:
+    enabled: false
+  application:
+    name: migrate-hmao
+
+datasource:
+  source:
+    driver-class-name: oracle.jdbc.OracleDriver
+    jdbc-url: jdbc:oracle:thin:@92.63.103.105:49163/xe
+    username: SM
+    password: 7FHYk7xLE
+  target:
+    driver-class-name: org.postgresql.Driver
+    jdbc-url: jdbc:postgresql://localhost:5432/hmao_test?currentSchema=hmao_test
+    username: postgres
+    password: postgres
+    maximum-pool-size: 2
+
+converter:
+  batch:
+    size: 10000
+#  target:
+#    driver-class-name: org.postgresql.Driver
+#    jdbc-url: jdbc:postgresql://92.63.103.105:5432/hmao_test?currentSchema=hmao_test
+#    username: postgres
+#    password: tK9CQW
+#    maximum-pool-size: 2
+mybatis:
+  config-location: classpath:mybatis-config.xml
+
+logging:
+  level:
+    ROOT: info
+#    org.springframework: info
+#    org.springframework.data: debug
+#    org.springframework.jdbc: debug
+#    org.mybatis: debug
+    ru.hmao.migrate.service: ${MIGRATE_LOG:debug}
+
+springdoc:
+  packagesToScan: ru.hmao.migrate
+  ## /v3/api-docs endpoint custom path: http://localhost:8089/docs/
+  api-docs.path: /docs
+  ## /swagger-ui.html custom path:      http://localhost:8089/swagger-ui.html
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+
+migrate:
+  scheduled-pool-size: 10
