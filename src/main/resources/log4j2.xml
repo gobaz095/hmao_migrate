@@ -36,7 +36,6 @@
                     "level": "${json:level}",
                     "text": "${json:message}",
 
-                    "eventId": "$${vtbEventId:uuid}",
                     "extEventId": "${json:mdc:extEventId}",
                     "parentId": null,
 
