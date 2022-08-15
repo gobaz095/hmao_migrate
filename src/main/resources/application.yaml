@@ -12,22 +12,25 @@ datasource:
     jdbc-url: jdbc:oracle:thin:@92.63.103.105:49163/xe
     username: SM
     password: 7FHYk7xLE
+#  target:
+#    driver-class-name: org.postgresql.Driver
+#    jdbc-url: jdbc:postgresql://localhost:5432/hmao_test?currentSchema=hmao_test
+#    username: postgres
+#    password: postgres
+#    maximum-pool-size: 2
+
+
   target:
     driver-class-name: org.postgresql.Driver
-    jdbc-url: jdbc:postgresql://localhost:5432/hmao_test?currentSchema=hmao_test
+    jdbc-url: jdbc:postgresql://92.63.103.105:5432/gpjs_prod?currentSchema=dzp
     username: postgres
-    password: postgres
+    password: tK9CQW
     maximum-pool-size: 2
 
 converter:
   batch:
-    size: 10000
-#  target:
-#    driver-class-name: org.postgresql.Driver
-#    jdbc-url: jdbc:postgresql://92.63.103.105:5432/hmao_test?currentSchema=hmao_test
-#    username: postgres
-#    password: tK9CQW
-#    maximum-pool-size: 2
+    size: 100
+
 mybatis:
   config-location: classpath:mybatis-config.xml
 

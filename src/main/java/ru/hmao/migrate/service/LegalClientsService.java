@@ -7,12 +7,22 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
+import ru.hmao.migrate.dao.target.TagetDzpCitizenLogRepository;
+import ru.hmao.migrate.dao.target.TagetDzpCitizenRepository;
+import ru.hmao.migrate.entity.target.TargetDzpCitizen;
+import ru.hmao.migrate.entity.target.TargetDzpCitizenLog;
 
 import javax.sql.DataSource;
+import javax.validation.constraints.NotNull;
 import java.sql.Connection;
 import java.sql.Date;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Duration;
 import java.time.Instant;
@@ -36,7 +46,14 @@ public class LegalClientsService {
     @Qualifier("targetDataSource")
     private final DataSource targetDataSource;
 
+    @Qualifier("targetTransactionManager")
+    @NotNull
+    private final PlatformTransactionManager targetTransactionManager;
+
     private AtomicBoolean isRun = new AtomicBoolean(false);
+
+    private final TagetDzpCitizenRepository tagetDzpCitizenRepository;
+    private final TagetDzpCitizenLogRepository tagetDzpCitizenLogRepository;
 
     private static final String SELECT = "SELECT " +
             "    id, " +
@@ -65,33 +82,6 @@ public class LegalClientsService {
             "    okved2 " +
             "FROM clients " +
             "where client_types_id = 2";
-    private static final String IINSERT = "INSERT INTO hmao_test.dzp_citizen(" +
-            "idcitizen, " +
-            "fnamecitizen, " +
-            "mnamecitizen, " +
-            "snamecitizen, " +
-            "dbirthcitizen, " +
-            "idsex, " +
-            "iddoctype, " +
-            "seriesdocument, " +
-            "numberdocument, " +
-            "descdocument, " +
-            "postindexreal, " +
-            "regionreal, " +
-            "cityreal, " +
-            "localityreal, " +
-            "streetreal, " +
-            "housereal, " +
-            "roomreal, " +
-            "idregionreal, " +
-            "phone, " +
-            "uins, " +
-            "uupd, " +
-            "inn, " +
-            "address, " +
-            "valid_snils, " +
-            "phonework) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
     @SneakyThrows
     @Async
@@ -100,71 +90,35 @@ public class LegalClientsService {
             log.debug("migrateLegalClients: already running");
         } else {
             isRun.set(true);
+            TransactionTemplate targetTransactionTemplate = new TransactionTemplate(targetTransactionManager);
+            TransactionDefinition defTarget = new DefaultTransactionDefinition();
+            TransactionStatus transactionStatusTarget = targetTransactionTemplate.getTransactionManager().getTransaction(defTarget);
             try {
                 Instant start = Instant.now();
                 log.info("start migrateLegalClients");
-
-                String resultLogSql = "insert into MIGRATE_CURS_CONTRACTOR (source_id, target_id) values (?, ?)";
                 try (Connection sourceConn = sourceDataSource.getConnection();
                      Statement sourceSt = sourceConn.createStatement();
-                     Connection targetConn = targetDataSource.getConnection();
-                     AutoCloseable finish = targetConn::rollback) {
-                    sourceConn.setAutoCommit(false);
+                     ) {
+                    sourceConn.setAutoCommit(true);
                     sourceSt.setFetchSize(batchSize);
-                    targetConn.setAutoCommit(false);
+
                     // Получаем данные
                     ResultSet rs = sourceSt.executeQuery(SELECT);
                     int count = 0;
 
-                    PreparedStatement st = targetConn.prepareStatement(IINSERT);
-                    PreparedStatement stResultLog = targetConn.prepareStatement(resultLogSql);
                     while (rs.next() && isRun.get()) {
-                        List<String> fio = Arrays.asList(rs.getString("name").split(" "));
-                        //String atorney  = rs.getLong("id")
+
                         Long id = rs.getLong("id");
-                        st.setLong(1, (id));
-                        st.setString(2, (fio.size() > 0 ? fio.get(0) : "Пусто"));
-                        st.setString(3, (fio.size() > 1 ? fio.get(1) : "Пусто"));
-                        st.setString(4, (fio.size() > 2 ? fio.get(2) : "Пусто"));
-                        Date existsSince = rs.getDate("exists_since");
-                        st.setDate(5, existsSince == null ? Date.valueOf(LocalDate.now()) : null);
-                        st.setInt(6, (3));
-                        st.setInt(7, (785));
-                        st.setString(8, ("-"));
-                        st.setString(9, "-");
-                        st.setString(10, null);
-                        st.setObject(11, null);
-                        st.setObject(12, null);
-                        st.setObject(13, null);
-                        st.setObject(14, null);
-                        st.setObject(15, null);
-                        st.setObject(16, null);
-                        st.setObject(17, null);
-                        st.setObject(18, null);
-                        st.setObject(19, null);
-                        st.setString(20, "DZP");
-                        st.setObject(21, null);
-                        st.setObject(22, null);
-                        st.setObject(23, null);
-                        st.setInt(24, 0);
-                        st.setObject(25, null);
-                        st.addBatch();
-                        //Логирование записи
-                        stResultLog.setLong(1, id);
-                        stResultLog.setLong(2, id);
-                        stResultLog.addBatch();
-                        count++;
-                        if (count % batchSize == 0) {
-                            log.info("test insert: " + count);
-                            st.executeBatch();
-                            //НУЖНО СОГЛАСОВАТЬ СОЗДАНИЕ ТАБЛИЦЫ
-                            //stResultLog.executeBatch();
+                        TargetDzpCitizen targetDzpCitizen = mapCitizen(rs);
+
+                        if (!tagetDzpCitizenLogRepository.findById(id).isPresent()) {
+                            tagetDzpCitizenRepository.insert(targetDzpCitizen);
+                            //Логирование записи
+                            tagetDzpCitizenLogRepository.insert(TargetDzpCitizenLog.builder().sourceId(id).idcitizen(targetDzpCitizen.getIdcitizen()).build());
+                            count++;
                         }
                     }
-                    st.executeBatch();
-                    targetConn.commit();
-                    sourceConn.commit();
-                    st.close();
+                    targetTransactionTemplate.getTransactionManager().commit(transactionStatusTarget);
                     rs.close();
                     Instant end = Instant.now();
                     log.info("migrateLegalClients ended at {}. It took {}. Total count: {}",
@@ -172,13 +126,44 @@ public class LegalClientsService {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+                //targetTransactionTemplate.getTransactionManager().rollback(transactionStatusTarget);
             } finally {
                 isRun.set(false);
             }
         }
     }
 
-    public void terminate() {
-        isRun.set(false);
+    public TargetDzpCitizen mapCitizen(ResultSet rs) throws SQLException {
+        List<String> fio = Arrays.asList(rs.getString("name").split(" "));
+        Date existsSince = rs.getDate("exists_since");
+        return TargetDzpCitizen.builder()
+                .idcitizen(tagetDzpCitizenRepository.getNextSeriesId())
+                .fnamecitizen(fio.size() > 0 ? fio.get(0) : "Пусто")
+                .mnamecitizen(fio.size() > 1 ? fio.get(1) : "Пусто")
+                .snamecitizen(fio.size() > 2 ? fio.get(2) : "Пусто")
+                .dbirthcitizen(existsSince == null ? LocalDate.now() : existsSince.toLocalDate())
+                .idsex(3)
+                .iddoctype(25) //785 не найдено
+                .seriesdocument("TESTMIG")
+                .numberdocument("-")
+                .descdocument(null)
+                .postindexreal(null)
+                .regionreal(null)
+                .cityreal(null)
+                .localityreal(null)
+                .streetreal(null)
+                .housereal(null)
+                .roomreal(null)
+                .idregionreal(null)
+                .phone(null)
+                .uins(null)
+                .uupd(null)
+                .inn(null)
+                .address(null)
+                .validSnils(0)
+                .phonework(null)
+                .dins(LocalDateTime.now())
+                .uins("DZP")
+                .build();
     }
 }
