@@ -67,7 +67,7 @@ public class ApplicantProcessor {
                 .idpackage(tagetDzpPackageRepository.getNextSeriesId())
                 .namepackage("Дело № ИД САУМИ " + rs.getString("regdoc_id"))
                 .dins(LocalDateTime.now())
-                .uins("DZP-mig2")
+                .uins("DZP-mig3")
                 .build();
         tagetDzpPackageRepository.insert(targetDzpPackage);
         targetDzpApplicant.setIdpackage(targetDzpPackage.getIdpackage());
@@ -132,7 +132,7 @@ public class ApplicantProcessor {
                 .idcategory(clientTypeId.equals(1) ? 2694 : 2695)
                 .descapplicant(rs.getString("info"))
                 .dins(LocalDateTime.now())
-                .uins("DZP-mig2")
+                .uins("DZP-mig3")
                 .idrolesApplicant(1)
                 .idsource(0)
                 .idorigintype(3)
@@ -165,7 +165,9 @@ public class ApplicantProcessor {
             case 36:
                 return 2;
             case 27:
+            case 29:
                 return 3;
+            case 28:
             case 30:
                 return 4;
             case 37:

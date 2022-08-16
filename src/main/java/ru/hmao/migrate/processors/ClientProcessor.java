@@ -62,7 +62,6 @@ public class ClientProcessor {
                     return false;
                 }
                 if (existingTargetDzpCitizen == null) {
-
                     String inn = rs.getString("inn");
                     if (inn != null) {
                         existingTargetDzpCitizen = tagetDzpCitizenRepository.getFirstByInn(inn);
@@ -127,7 +126,7 @@ public class ClientProcessor {
                 .validSnils(0)
                 .phonework(substring(rs.getString("mobil_phone"), 20))
                 .dins(LocalDateTime.now())
-                .uins("DZP-mig2")
+                .uins("DZP-mig3")
                 .build();
         setAddress(targetDzpCitizen);
         return targetDzpCitizen;
@@ -214,7 +213,7 @@ public class ClientProcessor {
                 .phonehome(substring(rs.getString("phone"), 20))
                 .phonework(substring(rs.getString("mobil_phone"), 20))
                 .dins(LocalDateTime.now())
-                .uins("DZP-mig2")
+                .uins("DZP-mig3")
                 .build();
         setAddress(targetDzpCitizen);
         return targetDzpCitizen;

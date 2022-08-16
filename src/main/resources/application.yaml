@@ -22,7 +22,7 @@ datasource:
 
 converter:
   batch:
-    size: 100
+    size: 1000
 
 mybatis:
   config-location: classpath:mybatis-config.xml
