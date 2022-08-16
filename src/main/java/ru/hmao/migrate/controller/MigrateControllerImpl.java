@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.hmao.migrate.enums.ClientType;
+import ru.hmao.migrate.service.ApplicantsService;
 import ru.hmao.migrate.service.ClientsService;
 
 @RestController
@@ -15,14 +16,22 @@ public class MigrateControllerImpl implements MigrateController {
     private static final String STARTED = "started. running ...";
     private static final String STOPPED = "stopping ...";
 
-    private final ClientsService legalClientsService;
+    private final ClientsService clientsService;
+    private final ApplicantsService applicantsService;
 
     @Override
-    @GetMapping("/migrateLegalClients")
-    public ResponseEntity<String> migrateLegalClients(ClientType clientType) {
+    @GetMapping("/migrateClients")
+    public ResponseEntity<String> migrateClients(ClientType clientType) {
         if (clientType != null) {
-            legalClientsService.migrateLegalClients(clientType);
+            clientsService.migrateLegalClients(clientType);
         }
+        return ResponseEntity.ok(STARTED);
+    }
+
+    @Override
+    @GetMapping("/migrateApplicants")
+    public ResponseEntity<String> migrateApplicants() {
+            applicantsService.migrateApplicants();
         return ResponseEntity.ok(STARTED);
     }
 

@@ -45,39 +45,42 @@ public class ClientProcessor {
     }
 
     public boolean processClient(ResultSet rs, ClientType clientType) throws Exception {
-            Long id = rs.getLong("id");
-            String snils = rs.getString("snils");
-            String inn = rs.getString("inn");
-            TargetDzpCitizen targetDzpCitizen = clientType.equals(ClientType.LEGAL) ? mapLegalCitizen(rs) : mapLegalIndividual(rs);
-            if (!tagetDzpCitizenLogRepository.findById(id).isPresent()) {
-                TargetDzpCitizen existingTargetDzpCitizen = null;
-                if (clientType.equals(ClientType.INDIVIDUAL)) {
-                    if (snils != null) {
-                        existingTargetDzpCitizen = tagetDzpCitizenRepository.getFirstBySnils(snils);
+        Long id = rs.getLong("id");
+
+        TargetDzpCitizen targetDzpCitizen = clientType.equals(ClientType.LEGAL) ? mapLegalCitizen(rs) : mapLegalIndividual(rs);
+        if (!tagetDzpCitizenLogRepository.findById(id).isPresent()) {
+            TargetDzpCitizen existingTargetDzpCitizen = null;
+            if (clientType.equals(ClientType.INDIVIDUAL)) {
+
+                String snils = rs.getString("snils");
+                if (snils != null) {
+                    existingTargetDzpCitizen = tagetDzpCitizenRepository.getFirstBySnils(snils);
+                }
+                if (existingTargetDzpCitizen != null) {
+                    log(clientType, id, existingTargetDzpCitizen, false);
+                    log.info("individual citizen ({}) found by snils {} with id {}", id, snils, existingTargetDzpCitizen.getIdcitizen());
+                    return false;
+                }
+                if (existingTargetDzpCitizen == null) {
+
+                    String inn = rs.getString("inn");
+                    if (inn != null) {
+                        existingTargetDzpCitizen = tagetDzpCitizenRepository.getFirstByInn(inn);
                     }
                     if (existingTargetDzpCitizen != null) {
-                        log(clientType, id, targetDzpCitizen, false);
-                        log.info("individual citizen ({}) found by snils {} with id {}", id, snils, targetDzpCitizen.getIdcitizen());
+                        log(clientType, id, existingTargetDzpCitizen, false);
+                        log.info("individual citizen ({}) found by inn {} with id {}", id, snils, existingTargetDzpCitizen.getIdcitizen());
                         return false;
                     }
-                    if (existingTargetDzpCitizen == null) {
-                        if (inn != null) {
-                            existingTargetDzpCitizen = tagetDzpCitizenRepository.getFirstByInn(inn);
-                        }
-                        if (existingTargetDzpCitizen != null) {
-                            log(clientType, id, targetDzpCitizen, false);
-                            log.info("individual citizen ({}) found by inn {} with id {}", id, snils, targetDzpCitizen.getIdcitizen());
-                            return false;
-                        }
-                    }
                 }
-                tagetDzpCitizenRepository.insert(targetDzpCitizen);
+            }
+            tagetDzpCitizenRepository.insert(targetDzpCitizen);
 //                if (1 == 1)
 //                    throw new Exception("test");
-                //Логирование записи
-                log(clientType, id, targetDzpCitizen, true);
-                return true;
-            }
+            //Логирование записи
+            log(clientType, id, targetDzpCitizen, true);
+            return true;
+        }
         return false;
     }
 
@@ -124,7 +127,7 @@ public class ClientProcessor {
                 .validSnils(0)
                 .phonework(substring(rs.getString("mobil_phone"), 20))
                 .dins(LocalDateTime.now())
-                .uins("DZP-mig")
+                .uins("DZP-mig2")
                 .build();
         setAddress(targetDzpCitizen);
         return targetDzpCitizen;
@@ -211,7 +214,7 @@ public class ClientProcessor {
                 .phonehome(substring(rs.getString("phone"), 20))
                 .phonework(substring(rs.getString("mobil_phone"), 20))
                 .dins(LocalDateTime.now())
-                .uins("DZP-mig")
+                .uins("DZP-mig2")
                 .build();
         setAddress(targetDzpCitizen);
         return targetDzpCitizen;
