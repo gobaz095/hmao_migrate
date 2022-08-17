@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.hmao.migrate.dao.target.TagetDzpCitizenLogRepository;
-import ru.hmao.migrate.dao.target.TagetDzpCitizenRepository;
-import ru.hmao.migrate.dao.target.TagetSpRegionRepository;
+import ru.hmao.migrate.dao.target.TargetDzpCitizenLogRepository;
+import ru.hmao.migrate.dao.target.TargetDzpCitizenRepository;
+import ru.hmao.migrate.dao.target.TargetSpRegionRepository;
 import ru.hmao.migrate.entity.target.TargetDzpCitizen;
 import ru.hmao.migrate.entity.target.TargetDzpCitizenLog;
 import ru.hmao.migrate.enums.ClientType;
@@ -32,9 +32,9 @@ import java.util.stream.Collectors;
 public class ClientProcessor {
 
 
-    private final TagetDzpCitizenRepository tagetDzpCitizenRepository;
-    private final TagetDzpCitizenLogRepository tagetDzpCitizenLogRepository;
-    private final TagetSpRegionRepository tagetSpRegionRepository;
+    private final TargetDzpCitizenRepository tagetDzpCitizenRepository;
+    private final TargetDzpCitizenLogRepository tagetDzpCitizenLogRepository;
+    private final TargetSpRegionRepository tagetSpRegionRepository;
 
     private Map<String, Integer> regionCodes;
 
@@ -125,8 +125,8 @@ public class ClientProcessor {
                 .address(null)
                 .validSnils(0)
                 .phonework(substring(rs.getString("mobil_phone"), 20))
-                .dins(LocalDateTime.now())
-                .uins("DZP-mig3")
+                .dins(LocalDateTime.now().plusYears(10))
+                .uins("DZP")
                 .build();
         setAddress(targetDzpCitizen);
         return targetDzpCitizen;
@@ -136,32 +136,17 @@ public class ClientProcessor {
         List<String> fullname = new ArrayList<>(Arrays.asList(rs.getString("fullname").replaceAll("\\d", "")
                 .replaceAll("-", "").split(" ")));
         List<String> fullnameResult = new ArrayList<>();
-        fullname.removeIf(x -> x == null || x.isEmpty());
-        //Костыль для одной буквы через пробел
-        if (fullname.size() > 3) {
-            String addStr = null;
-            for (String str : fullname) {
-                if (addStr != null) {
-                    str = addStr + str;
-                }
-                if (str.length() == 1) {
-                    addStr = str;
-                } else {
-                    fullnameResult.add(str);
-                }
-            }
-            fullname.clear();
-            fullname.addAll(fullnameResult);
-        } else {
-            fullnameResult.addAll(fullname);
-        }
 
-        //Костыль для нескольких фамилий
-        if (fullnameResult.size() == 4) {
-            fullnameResult.clear();
-            fullnameResult.add(fullname.get(0) + fullname.get(1));
-            fullnameResult.add(fullname.get(2));
-            fullnameResult.add(fullname.get(3));
+        if (fullname.size() > 3) {
+            String mnamecitizen = "";
+            int j = fullname.size() - 2;
+            for (int i = 0; i < j; i++) {
+                mnamecitizen += fullname.get(i);
+            }
+            fullnameResult.add(mnamecitizen);
+            fullnameResult.add(fullname.get(j));
+            fullnameResult.add(fullname.get(j + 1));
+
         }
         Date existsSince = rs.getDate("born_date");
         Integer townCodeId = rs.getInt("townname_code_id");
@@ -187,8 +172,8 @@ public class ClientProcessor {
         }
         TargetDzpCitizen targetDzpCitizen = TargetDzpCitizen.builder()
                 .idcitizen(tagetDzpCitizenRepository.getNextSeriesId())
-                .fnamecitizen(fullnameResult.size() > 0 ? fullnameResult.get(0) : "")
-                .mnamecitizen(fullnameResult.size() > 1 ? fullnameResult.get(1) : "")
+                .mnamecitizen(fullnameResult.size() > 1 ? fullnameResult.get(0) : "")
+                .fnamecitizen(fullnameResult.size() > 0 ? fullnameResult.get(1) : "")
                 .snamecitizen(fullnameResult.size() > 2 ? fullnameResult.get(2) : "")
                 .dbirthcitizen(existsSince == null ? LocalDate.of(1900, 1, 1) : existsSince.toLocalDate())
                 .idsex(getSex(fullnameResult.size() > 2 ? fullnameResult.get(2) : ""))
@@ -212,8 +197,8 @@ public class ClientProcessor {
                 .validSnils(0)
                 .phonehome(substring(rs.getString("phone"), 20))
                 .phonework(substring(rs.getString("mobil_phone"), 20))
-                .dins(LocalDateTime.now())
-                .uins("DZP-mig3")
+                .dins(LocalDateTime.now().plusYears(10))
+                .uins("DZP")
                 .build();
         setAddress(targetDzpCitizen);
         return targetDzpCitizen;

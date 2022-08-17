@@ -26,4 +26,10 @@ public interface MigrateController {
             @ApiResponse(responseCode = SwaggerConstants.HTTP_OK, description = SwaggerConstants.LOAD_DATA_DB_SUCCESSFULLY),
             @ApiResponse(responseCode = SwaggerConstants.HTTP_ERROR, description = SwaggerConstants.LOAD_DATA_DB_FAILED)})
     ResponseEntity<String> migrateApplicants() throws Exception;
+
+    @Operation(summary = "Выполнить миграцию родственных связей")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = SwaggerConstants.HTTP_OK, description = SwaggerConstants.LOAD_DATA_DB_SUCCESSFULLY),
+            @ApiResponse(responseCode = SwaggerConstants.HTTP_ERROR, description = SwaggerConstants.LOAD_DATA_DB_FAILED)})
+    ResponseEntity<String> migrateFamily() throws Exception;
 }

@@ -47,7 +47,8 @@ public class ApplicantsService {
             "ADDRESS.house || '' || ADDRESS.HOUSE_CHAR as house_char,\n" +
             "ADDRESS.appartment,\n" +
             "REGIONS.code as region_code,\n" +
-            "TOWNNAMES.townname_code_id\n" +
+            "TOWNNAMES.townname_code_id,\n" +
+            "MOVEPERIODS.sincedate\n" +
             "from CLIENTS \n" +
             "left join MOVESETS on MOVESETS.CLIENT_ID = CLIENTS.ID\n" +
             "left join MOVEPERIODS on MOVEPERIODS.MOVESET_ID = MOVESETS.ID\n" +

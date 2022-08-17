@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.hmao.migrate.enums.ClientType;
 import ru.hmao.migrate.service.ApplicantsService;
 import ru.hmao.migrate.service.ClientsService;
+import ru.hmao.migrate.service.FamilyService;
 
 @RestController
 @RequestMapping("migrate")
@@ -18,6 +19,7 @@ public class MigrateControllerImpl implements MigrateController {
 
     private final ClientsService clientsService;
     private final ApplicantsService applicantsService;
+    private final FamilyService familyService;
 
     @Override
     @GetMapping("/migrateClients")
@@ -32,6 +34,13 @@ public class MigrateControllerImpl implements MigrateController {
     @GetMapping("/migrateApplicants")
     public ResponseEntity<String> migrateApplicants() {
             applicantsService.migrateApplicants();
+        return ResponseEntity.ok(STARTED);
+    }
+
+    @Override
+    @GetMapping("/migrateFamily")
+    public ResponseEntity<String> migrateFamily() {
+        familyService.migrateFamily();
         return ResponseEntity.ok(STARTED);
     }
 

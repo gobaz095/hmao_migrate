@@ -4,13 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.hmao.migrate.dao.target.TagetDzpApplicantLogRepository;
-import ru.hmao.migrate.dao.target.TagetDzpApplicantRepository;
-import ru.hmao.migrate.dao.target.TagetDzpCitizenLogRepository;
-import ru.hmao.migrate.dao.target.TagetDzpEstateInfoRepository;
-import ru.hmao.migrate.dao.target.TagetDzpFiasAddressRepository;
-import ru.hmao.migrate.dao.target.TagetDzpPackageRepository;
-import ru.hmao.migrate.dao.target.TagetSpRegionRepository;
+import ru.hmao.migrate.dao.target.TargetDzpApplicantLogRepository;
+import ru.hmao.migrate.dao.target.TargetDzpApplicantRepository;
+import ru.hmao.migrate.dao.target.TargetDzpCitizenLogRepository;
+import ru.hmao.migrate.dao.target.TargetDzpEstateInfoRepository;
+import ru.hmao.migrate.dao.target.TargetDzpFiasAddressRepository;
+import ru.hmao.migrate.dao.target.TargetDzpPackageRepository;
+import ru.hmao.migrate.dao.target.TargetSpRegionRepository;
 import ru.hmao.migrate.entity.target.TargetDzpApplicant;
 import ru.hmao.migrate.entity.target.TargetDzpApplicantLog;
 import ru.hmao.migrate.entity.target.TargetDzpCitizenLog;
@@ -21,7 +21,10 @@ import ru.hmao.migrate.entity.target.TargetDzpRealEstateInfo;
 import javax.annotation.PostConstruct;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,13 +35,13 @@ import java.util.Map;
 public class ApplicantProcessor {
 
 
-    private final TagetDzpApplicantRepository tagetDzpApplicantRepository;
-    private final TagetDzpCitizenLogRepository tagetDzpCitizenLogRepository;
-    private final TagetSpRegionRepository tagetSpRegionRepository;
-    private final TagetDzpPackageRepository tagetDzpPackageRepository;
-    private final TagetDzpApplicantLogRepository tagetDzpApplicantLogRepository;
-    private final TagetDzpFiasAddressRepository tagetDzpFiasAddressRepository;
-    private final TagetDzpEstateInfoRepository tagetDzpEstateInfoRepository;
+    private final TargetDzpApplicantRepository tagetDzpApplicantRepository;
+    private final TargetDzpCitizenLogRepository tagetDzpCitizenLogRepository;
+    private final TargetSpRegionRepository tagetSpRegionRepository;
+    private final TargetDzpPackageRepository tagetDzpPackageRepository;
+    private final TargetDzpApplicantLogRepository tagetDzpApplicantLogRepository;
+    private final TargetDzpFiasAddressRepository tagetDzpFiasAddressRepository;
+    private final TargetDzpEstateInfoRepository tagetDzpEstateInfoRepository;
 
     private Map<String, Integer> regionCodes;
 
@@ -66,8 +69,8 @@ public class ApplicantProcessor {
         TargetDzpPackage targetDzpPackage = TargetDzpPackage.builder()
                 .idpackage(tagetDzpPackageRepository.getNextSeriesId())
                 .namepackage("Дело № ИД САУМИ " + rs.getString("regdoc_id"))
-                .dins(LocalDateTime.now())
-                .uins("DZP-mig3")
+                .dins(LocalDateTime.now().plusYears(10))
+                .uins("DZP")
                 .build();
         tagetDzpPackageRepository.insert(targetDzpPackage);
         targetDzpApplicant.setIdpackage(targetDzpPackage.getIdpackage());
@@ -80,21 +83,24 @@ public class ApplicantProcessor {
 
         tagetDzpEstateInfoRepository.insert(targetDzpRealEstateInfo);
 
-        targetDzpApplicant.setRealestateinfo(targetDzpRealEstateInfo.getId());
 
         tagetDzpApplicantRepository.insert(targetDzpApplicant);
-//                if (1 == 1)
-//                    throw new Exception("test");
+
+        tagetDzpEstateInfoRepository.insertApplicantRealEstate(targetDzpApplicant.getIdapplicant(), targetDzpRealEstateInfo.getId());
+        //targetDzpApplicant.setRealestateinfo(targetDzpRealEstateInfo.getId());
+
         //Логирование записи
-        log(id, targetDzpApplicant);
+        log(id, clientId, targetDzpApplicant);
         return true;
 
     }
 
-    private void log(Long id, TargetDzpApplicant targetDzpApplicant) {
+    private void log(Long id, Long clientId, TargetDzpApplicant targetDzpApplicant) {
         tagetDzpApplicantLogRepository.insert(TargetDzpApplicantLog.builder()
                 .movesetid(id)
+                .clientId(clientId)
                 .idapplicant(targetDzpApplicant.getIdapplicant())
+                .idcitizen(targetDzpApplicant.getIdcitizen())
                 .build());
     }
 
@@ -125,18 +131,21 @@ public class ApplicantProcessor {
     }
 
     public TargetDzpApplicant mapApplicant(ResultSet rs, Long citizenId, Integer clientTypeId) throws SQLException {
+        Date dateEntered = rs.getDate("sincedate");
         TargetDzpApplicant targetDzpApplicant = TargetDzpApplicant.builder()
                 .idapplicant(tagetDzpApplicantRepository.getNextSeriesId())
-                .registrationnumber(rs.getLong("id") * -1)
+                .registrationnumber(tagetDzpApplicantRepository.getMaxRegNumber() + 1)
                 .idcitizen(citizenId)
                 .idcategory(clientTypeId.equals(1) ? 2694 : 2695)
                 .descapplicant(rs.getString("info"))
-                .dins(LocalDateTime.now())
-                .uins("DZP-mig3")
+                .dins(LocalDateTime.now().plusYears(10))
+                .uins("DZP")
                 .idrolesApplicant(1)
                 .idsource(0)
                 .idorigintype(3)
                 .idtypefund(getIdTypeFund(rs.getInt("movetype_id")))
+                .dateentered(dateEntered == null ? LocalDate.now() : dateEntered.toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
+                .idorganization(277L)
                 .build();
         return targetDzpApplicant;
     }

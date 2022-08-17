@@ -12,12 +12,12 @@ import org.springframework.data.relational.core.mapping.Table;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table("migrate_dzp_applicant")
+@Table("migrate_dzp_family")
 @Builder
-public class TargetDzpApplicantLog {
+public class TargetDzpFamilyLog {
     @Id
-    private Long movesetid;
-    private Long clientId;
-    private Long idcitizen;
+    private String sourceId;
     private Long idapplicant;
+    private Long idcitizen;
+    private Long idfamily;
 }

@@ -8,16 +8,20 @@ import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table("migrate_dzp_applicant")
+@Table("dzp_family")
 @Builder
-public class TargetDzpApplicantLog {
+public class TargetDzpFamily {
     @Id
-    private Long movesetid;
-    private Long clientId;
+    private Long idfamily;
     private Long idcitizen;
     private Long idapplicant;
+    private Integer idrelation;
+    private LocalDateTime dins;
+    private String uins;
 }
