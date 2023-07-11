@@ -11,6 +11,6 @@ public interface TargetDzpEstateInfoRepository extends CrudRepository<TargetDzpR
     Long getNextSeriesId();
 
     @Modifying
-    @Query(value = "insert into dzp_applicant_real_estate (idapplicant, idrealestate) values (:idapplicant, :idrealestate")
+    @Query(value = "insert into dzp_applicant_real_estate (idapplicant, idrealestate) values (:idapplicant, :idrealestate)")
     void insertApplicantRealEstate(Long idapplicant, Long idrealestate);
 }

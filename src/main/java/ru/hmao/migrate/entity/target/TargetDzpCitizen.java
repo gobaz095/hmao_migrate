@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDate;
@@ -24,6 +25,7 @@ public class TargetDzpCitizen {
     private String mnamecitizen;
     private String snamecitizen;
     private LocalDate dbirthcitizen;
+    private LocalDate datereg;
     private Integer idsex;
     private Integer iddoctype;
     private String seriesdocument;
@@ -36,7 +38,7 @@ public class TargetDzpCitizen {
     private String locality;
     private String street;
     private String house;
-    private Integer room;
+    private String room;
     private Long idregion;
     private Long idarea;
     private Long idcity;
@@ -85,6 +87,9 @@ public class TargetDzpCitizen {
     private LocalDateTime dreghmao;
     private LocalDate updatepassportstatus;
     private String passportstatus;
+    private Integer citizentype;
 
+    @Transient
+    private String fullnameNormalized;
 
 }

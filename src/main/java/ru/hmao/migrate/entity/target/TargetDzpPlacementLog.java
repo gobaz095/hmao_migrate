@@ -8,17 +8,17 @@ import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table("migrate_dzp_applicant")
+@Table("migrate_dzp_placement")
 @Builder
-public class TargetDzpApplicantLog {
+public class TargetDzpPlacementLog {
     @Id
     private Long objectId;
-    private Long movesetsId;
-    private Long clientId;
-    private Long idcitizen;
-    private Long idapplicant;
+    private UUID placementuuid;
+
 }

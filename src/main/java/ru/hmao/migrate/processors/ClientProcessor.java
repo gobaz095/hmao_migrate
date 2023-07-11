@@ -9,6 +9,7 @@ import ru.hmao.migrate.dao.target.TargetDzpCitizenRepository;
 import ru.hmao.migrate.dao.target.TargetSpRegionRepository;
 import ru.hmao.migrate.entity.target.TargetDzpCitizen;
 import ru.hmao.migrate.entity.target.TargetDzpCitizenLog;
+import ru.hmao.migrate.entity.target.TargetDzpContractLog;
 import ru.hmao.migrate.enums.ClientType;
 
 import javax.annotation.PostConstruct;
@@ -22,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -44,32 +46,63 @@ public class ClientProcessor {
         tagetSpRegionRepository.findAll().forEach(x -> regionCodes.put(x.getCoderegion().substring(0, 1), x.getIdregion()));
     }
 
+    public boolean renameClient(ResultSet rs) throws Exception {
+        Long id = rs.getLong("id");
+        TargetDzpCitizenLog targetDzpCitizenLog = tagetDzpCitizenLogRepository.findById(id).orElse(null);
+        if (targetDzpCitizenLog != null) {
+
+            String snamecitizen = rs.getString("org_name");
+            String fnamecitizen = rs.getString("org_fullname");
+            String mnamecitizen = rs.getString("org_form");
+
+            tagetDzpCitizenRepository.updateFullName(snamecitizen == null ? "" : snamecitizen, fnamecitizen == null ? "" : fnamecitizen, mnamecitizen == null ? "" : mnamecitizen, targetDzpCitizenLog.getIdcitizen());
+            return true;
+        }
+        return false;
+    }
+
     public boolean processClient(ResultSet rs, ClientType clientType) throws Exception {
         Long id = rs.getLong("id");
 
-        TargetDzpCitizen targetDzpCitizen = clientType.equals(ClientType.LEGAL) ? mapLegalCitizen(rs) : mapLegalIndividual(rs);
+        TargetDzpCitizen targetDzpCitizen = clientType.equals(ClientType.LEGAL) ? mapLegalCitizen(rs) : mapIndividual(rs);
         if (!tagetDzpCitizenLogRepository.findById(id).isPresent()) {
             TargetDzpCitizen existingTargetDzpCitizen = null;
             if (clientType.equals(ClientType.INDIVIDUAL)) {
 
-                String snils = rs.getString("snils");
+                String snils = targetDzpCitizen.getSnils();
                 if (snils != null) {
-                    existingTargetDzpCitizen = tagetDzpCitizenRepository.getFirstBySnils(snils);
+                    if (!snils.isEmpty()) {
+                        existingTargetDzpCitizen = tagetDzpCitizenRepository.getFirstBySnils(snils.replaceAll("[^\\d.]", ""));
+                    }
                 }
                 if (existingTargetDzpCitizen != null) {
                     log(clientType, id, existingTargetDzpCitizen, false);
                     log.info("individual citizen ({}) found by snils {} with id {}", id, snils, existingTargetDzpCitizen.getIdcitizen());
                     return false;
                 }
+//                if (existingTargetDzpCitizen == null) {
+//                    String inn = rs.getString("inn");
+//                    if (inn != null) {
+//                        existingTargetDzpCitizen = tagetDzpCitizenRepository.getFirstByInn(inn);
+//                    }
+//                    if (existingTargetDzpCitizen != null) {
+//                        log(clientType, id, existingTargetDzpCitizen, false);
+//                        log.info("individual citizen ({}) found by inn {} with id {}", id, snils, existingTargetDzpCitizen.getIdcitizen());
+//                        return false;
+//                    }
+//                }
                 if (existingTargetDzpCitizen == null) {
-                    String inn = rs.getString("inn");
-                    if (inn != null) {
-                        existingTargetDzpCitizen = tagetDzpCitizenRepository.getFirstByInn(inn);
-                    }
+                    existingTargetDzpCitizen = tagetDzpCitizenRepository.getFirstByFio(targetDzpCitizen.getFullnameNormalized());
                     if (existingTargetDzpCitizen != null) {
-                        log(clientType, id, existingTargetDzpCitizen, false);
-                        log.info("individual citizen ({}) found by inn {} with id {}", id, snils, existingTargetDzpCitizen.getIdcitizen());
-                        return false;
+                        if (existingTargetDzpCitizen.getDbirthcitizen() == null || targetDzpCitizen.getDbirthcitizen().equals(LocalDate.of(1900, 1, 1))
+                                || existingTargetDzpCitizen.getDbirthcitizen().equals(LocalDate.of(1900, 1, 1))
+                                || existingTargetDzpCitizen.getDbirthcitizen().equals(targetDzpCitizen.getDbirthcitizen())
+                                || existingTargetDzpCitizen.getDbirthcitizen().equals(LocalDate.of(targetDzpCitizen.getDbirthcitizen().getYear(), 1, 1))) {
+                            log(clientType, id, existingTargetDzpCitizen, false);
+                            log.info("individual citizen ({}) found by fullname {} with id {}", id, targetDzpCitizen.getFullnameNormalized(), existingTargetDzpCitizen.getIdcitizen());
+                            return false;
+                        }
+
                     }
                 }
             }
@@ -85,7 +118,7 @@ public class ClientProcessor {
 
     private void log(ClientType clientType, Long id, TargetDzpCitizen targetDzpCitizen, boolean isNew) {
         tagetDzpCitizenLogRepository.insert(TargetDzpCitizenLog.builder()
-                .sourceId(id)
+                .clientId(id)
                 .clientTypesId(clientType.equals(ClientType.LEGAL) ? 2 : 1)
                 .idcitizen(targetDzpCitizen.getIdcitizen())
                 .newItem(isNew)
@@ -98,12 +131,15 @@ public class ClientProcessor {
         Integer townCodeId = rs.getInt("townname_code_id");
         String townName = rs.getString("town_name");
         String ogrn = rs.getString("ogrn");
-        String orgName = rs.getString("org_name");
+        String snamecitizen = rs.getString("org_name");
+        String fnamecitizen = rs.getString("org_fullname");
+        String mnamecitizen = rs.getString("org_form");
         String regionCode = rs.getString("region_code");
         TargetDzpCitizen targetDzpCitizen = TargetDzpCitizen.builder()
                 .idcitizen(tagetDzpCitizenRepository.getNextSeriesId())
-                .fnamecitizen(substring(orgName, 100))
-                .mnamecitizen(rs.getString("org_form"))
+                .fnamecitizen(fnamecitizen == null ? "" : fnamecitizen)
+                .fnamecitizen(snamecitizen == null ? "" : snamecitizen)
+                .fnamecitizen(mnamecitizen == null ? "" : mnamecitizen)
                 .snamecitizen(ogrn == null ? "" : ogrn)
                 .dbirthcitizen(existsSince == null ? LocalDate.of(1900, 1, 1) : existsSince.toLocalDate())
                 .idsex(3)
@@ -126,17 +162,20 @@ public class ClientProcessor {
                 .validSnils(0)
                 .phonework(substring(rs.getString("mobil_phone"), 20))
                 .dins(LocalDateTime.now().plusYears(10))
-                .uins("DZP")
+                .uins("SAUMI-MIG")
+                .citizentype(2)
                 .build();
         setAddress(targetDzpCitizen);
         return targetDzpCitizen;
     }
 
-    public TargetDzpCitizen mapLegalIndividual(ResultSet rs) throws SQLException {
-        List<String> fullname = new ArrayList<>(Arrays.asList(rs.getString("fullname").replaceAll("\\d", "")
-                .replaceAll("-", "").split(" ")));
-        List<String> fullnameResult = new ArrayList<>();
+    public TargetDzpCitizen mapIndividual(ResultSet rs) throws SQLException {
+        String fullnameStr = rs.getString("fullname").replaceAll("[^\\u0410-\\u044f ()]", "");
+        List<String> fullname = new ArrayList<>(Arrays.asList(fullnameStr.split(" ")));
 
+        Date datereg = rs.getDate("pasportdate");
+        List<String> fullnameResult = new ArrayList<>();
+        fullname.removeAll(Collections.singleton(""));
         if (fullname.size() > 3) {
             String mnamecitizen = "";
             int j = fullname.size() - 2;
@@ -147,12 +186,17 @@ public class ClientProcessor {
             fullnameResult.add(fullname.get(j));
             fullnameResult.add(fullname.get(j + 1));
 
+        } else {
+            fullnameResult = fullname;
         }
         Date existsSince = rs.getDate("born_date");
+        Integer bornyear = rs.getInt("bornyear");
         Integer townCodeId = rs.getInt("townname_code_id");
         String townName = rs.getString("town_name");
         String regionCode = rs.getString("region_code");
         Integer identdoctypeId = rs.getInt("identdoctype_id");
+        String inn = rs.getString("inn");
+        String snils = rs.getString("snils");
         Integer idDocType = getIdDocType(identdoctypeId);
         String numberdocument;
         String seriesdocument = null;
@@ -172,10 +216,10 @@ public class ClientProcessor {
         }
         TargetDzpCitizen targetDzpCitizen = TargetDzpCitizen.builder()
                 .idcitizen(tagetDzpCitizenRepository.getNextSeriesId())
-                .mnamecitizen(fullnameResult.size() > 1 ? fullnameResult.get(0) : "")
-                .fnamecitizen(fullnameResult.size() > 0 ? fullnameResult.get(1) : "")
-                .snamecitizen(fullnameResult.size() > 2 ? fullnameResult.get(2) : "")
-                .dbirthcitizen(existsSince == null ? LocalDate.of(1900, 1, 1) : existsSince.toLocalDate())
+                .snamecitizen(fullnameResult.size() > 0 ? fullnameResult.get(0) : "")
+                .fnamecitizen(fullnameResult.size() > 1 ? fullnameResult.get(1) : "")
+                .mnamecitizen(fullnameResult.size() > 2 ? fullnameResult.get(2) : "")
+                .dbirthcitizen(existsSince == null ? LocalDate.of(bornyear == null ? 1900 : bornyear, 1, 1) : existsSince.toLocalDate())
                 .idsex(getSex(fullnameResult.size() > 2 ? fullnameResult.get(2) : ""))
                 .iddoctype(idDocType)
                 .seriesdocument(seriesdocument == null ? "-" : substring(seriesdocument, 10))
@@ -191,14 +235,21 @@ public class ClientProcessor {
                 .idregionreal(regionCode == null ? null : regionCodes.get(regionCode))
                 .phone(substring(rs.getString("phone"), 20))
                 .uupd(null)
-                .inn(substring(rs.getString("inn"), 12))
-                .snils(substring(rs.getString("snils"), 14))
+                .inn(inn == null ? null : inn.replaceAll("[^\\d.]", ""))
+                .snils(snils == null ? null : snils.replaceAll("[^\\d.]", ""))
                 .address(null)
                 .validSnils(0)
                 .phonehome(substring(rs.getString("phone"), 20))
                 .phonework(substring(rs.getString("mobil_phone"), 20))
                 .dins(LocalDateTime.now().plusYears(10))
-                .uins("DZP")
+                .uins("SAUMI-MIG")
+                .citizentype(1)
+                .fullnameNormalized(fullnameStr.replaceAll("[^\\u0410-\\u044f]", "").toLowerCase(Locale.ROOT)
+                        .replace("ё", "е")
+                        .replace("й", "и"))
+
+                .issuedocument(rs.getString("pasportgiven"))
+                .datereg(datereg == null ? null : datereg.toLocalDate())
                 .build();
         setAddress(targetDzpCitizen);
         return targetDzpCitizen;

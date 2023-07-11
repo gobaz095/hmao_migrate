@@ -26,6 +26,7 @@ public class TargetDzpApplicant {
     private Integer idcategory;
     private LocalDate datestatement;
     private LocalDate dateentered;
+    private LocalDate datecomplete;
     private LocalDateTime dins;
     private String descapplicant;
     private String uins;
@@ -33,7 +34,9 @@ public class TargetDzpApplicant {
     private Integer idsource;
     private Integer idorigintype;
     private Integer idtypefund;
-    private Long idInitialCategory;
+    private Integer idInitialCategory;
     private Long realestateinfo;
     private Long idorganization;
+    private String contractnumber;
+    private Integer queueId;
 }

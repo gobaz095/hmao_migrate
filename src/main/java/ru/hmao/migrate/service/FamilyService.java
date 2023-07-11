@@ -6,7 +6,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import ru.hmao.migrate.dao.target.TargetDzpApplicantLogRepository;
+import ru.hmao.migrate.dao.target.TargetDzpApplicantPartLogRepository;
 import ru.hmao.migrate.entity.target.TargetDzpApplicantLog;
+import ru.hmao.migrate.entity.target.TargetDzpApplicantPartLog;
 import ru.hmao.migrate.processors.FamilyProcessor;
 
 import java.time.Duration;
@@ -22,9 +24,10 @@ public class FamilyService {
 
     private final FamilyProcessor familyProcessor;
     private final TargetDzpApplicantLogRepository targetDzpApplicantLogRepository;
+    private final TargetDzpApplicantPartLogRepository targetDzpApplicantPartLogRepository;
 
     @SneakyThrows
-    @Async
+    //@Async
     public void migrateFamily() {
         if (isRun.get()) {
             log.debug("migrate family: already running");
@@ -35,7 +38,15 @@ public class FamilyService {
             log.info("start migrate family");
             for (TargetDzpApplicantLog targetDzpApplicantLog : targetDzpApplicantLogRepository.findAll()) {
                 try {
-                    count += familyProcessor.processFamily(targetDzpApplicantLog);
+                    count += familyProcessor.processFamily(targetDzpApplicantLog.getIdapplicant(), targetDzpApplicantLog.getClientId());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            for (TargetDzpApplicantPartLog targetDzpApplicantPartLog : targetDzpApplicantPartLogRepository.findAll()) {
+                try {
+                    count += familyProcessor.processFamily(targetDzpApplicantPartLog.getIdapplicant(), targetDzpApplicantPartLog.getClientId());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
